@@ -1,22 +1,21 @@
 {
-  "name": "electron-quick-start",
+  "name": "electron-circle-by-3-points",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/ufoproger/electron-circle-by-3-points",
   "keywords": [
     "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
   ],
   "author": "GitHub",
-  "license": "CC0-1.0",
   "devDependencies": {
     "electron": "~1.7.8"
+  },
+  "dependencies": {
+    "three": "^0.89.0",
+    "three-orbit-controls": "^82.1.0"
   }
 }
