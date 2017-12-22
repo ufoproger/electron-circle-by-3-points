@@ -1,8 +1,11 @@
 const THREE = require('three')
 const OrbitControls = require('three-orbit-controls')(THREE)
 
+const Stats = require('stats.js')
+
 let camera, scene, renderer, controls
 let geometry, material, mesh
+let stats
 
 init()
 animate()
@@ -45,6 +48,9 @@ function init () {
 
   addLine()
 
+  stats = new Stats()
+  document.body.appendChild(stats.dom)
+
   controls.update()
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -57,6 +63,7 @@ function animate () {
   mesh.rotation.x += 0.01
   mesh.rotation.y += 0.005
   controls.update()
+  stats.update()
   renderer.render(scene, camera)
 }
 
