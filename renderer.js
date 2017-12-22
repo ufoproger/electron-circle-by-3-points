@@ -1,5 +1,5 @@
-let THREE = require('three')
-let OrbitControls = require('three-orbit-controls')(THREE)
+const THREE = require('three')
+const OrbitControls = require('three-orbit-controls')(THREE)
 
 let camera, scene, renderer, controls
 let geometry, material, mesh
