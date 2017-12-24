@@ -9,8 +9,17 @@
 		</style>
 	</head>
 	<body>
-    <script>
-      require('./renderer.js')
-    </script>
+    <script src="./node_modules/three/build/three.min.js"></script>
+    <!-- https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_orbit.html -->
+    <script src="./src/js/controls/OrbitControls.js"></script>
+
+    <!-- https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html -->
+    <script src="./src/js/objects/Sky.js"></script>
+
+    <script src="./node_modules/dat.gui/build/dat.gui.min.js"></script>
+    <script src="./node_modules/stats.js/build/stats.min.js"></script>
+
+    <script src="./options.js"></script>
+    <script src="./renderer.js"></script>
 	</body>
 </html>
