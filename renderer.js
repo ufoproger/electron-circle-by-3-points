@@ -1,9 +1,12 @@
 /* global THREE */
 /* global Stats */
+/* global Solver */
 /* global dat */
 /* global options */
 
+let solver
 let camera, scene, renderer, orbit
+let solution = {}
 let geometry, material, mesh, sky, sunSphere, plot
 let stats
 let points = {
@@ -12,17 +15,35 @@ let points = {
   objects: []
 }
 
+function initSky () {
+  sky = new THREE.Sky()
+  sky.scale.setScalar(options.skyScale)
+  scene.add(sky)
+
+  sunSphere = new THREE.Mesh(
+    new THREE.SphereBufferGeometry(200, 16, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+  )
+
+  sunSphere.position.y = -10
+  sunSphere.visible = false
+  scene.add(sunSphere)
+  console.log(options)
+}
+
 function guiChanged () {
   let distance = 40
 
-  var uniforms = sky.material.uniforms
+  let uniforms = sky.material.uniforms
   uniforms.turbidity.value = options.turbidity
   uniforms.rayleigh.value = options.rayleigh
   uniforms.luminance.value = options.luminance
   uniforms.mieCoefficient.value = options.mieCoefficient
   uniforms.mieDirectionalG.value = options.mieDirectionalG
-  var theta = Math.PI * (options.inclination - 0.5)
-  var phi = 2 * Math.PI * (options.azimuth - 0.5)
+
+  let theta = Math.PI * (options.inclination - 0.5)
+  let phi = 2 * Math.PI * (options.azimuth - 0.5)
+
   sunSphere.position.x = distance * Math.cos(phi)
   sunSphere.position.y = distance * Math.sin(phi) * Math.sin(theta)
   sunSphere.position.z = distance * Math.sin(phi) * Math.cos(theta)
@@ -31,49 +52,71 @@ function guiChanged () {
   sky.visible = options.sky
   plot.visible = options.plot
 
+  renderer.render(scene, camera)
+}
+
+function guiPointChanged (resetPreset = true) {
   for (const [index, name] of Object.entries(points.names)) {
     for (const coordinate of points.coordinates) {
       points.objects[index].position[coordinate] = options[name + coordinate]
     }
   }
 
-  renderer.render(scene, camera)
+  if (resetPreset) {
+    // Сбрасываем пресет, потому что введены кастомные значения координат
+    options.preset = ''
+  }
+
+  solve()
 }
 
-function initSky () {
-  sky = new THREE.Sky()
-  sky.scale.setScalar(450)
-  scene.add(sky)
+function initSolution () {
+  solution.group = new THREE.Group()
 
-  sunSphere = new THREE.Mesh(
-    new THREE.SphereBufferGeometry(20000, 16, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  )
+  solution.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1)
+  solution.planeHelper = new THREE.PlaneHelper(solution.plane, 1, 0xffff00)
+  solution.group.add(solution.planeHelper)
 
-  sunSphere.position.y = -70
-  sunSphere.visible = false
-  scene.add(sunSphere)
+  scene.add(solution.group)
+}
+
+function solve () {
+  solver.run(points.objects[0].position, points.objects[1].position, points.objects[2].position)
+}
+
+function guiPresetChanged () {
+  let values = options.preset.split(',')
+
+  options.Ax = values[0]
+  options.Ay = values[1]
+  options.Az = values[2]
+  options.Bx = values[3]
+  options.By = values[4]
+  options.Bz = values[5]
+  options.Cx = values[6]
+  options.Cy = values[7]
+  options.Cz = values[8]
+
+  guiPointChanged(false)
 }
 
 function initDatGui () {
   let gui = new dat.GUI()
 
-  // gui.add(options, 'turbidity', 1.0, 20.0, 0.1).onChange(guiChanged)
-  // gui.add(options, 'rayleigh', 0.0, 4, 0.001).onChange(guiChanged)
-  // gui.add(options, 'mieCoefficient', 0.0, 0.1, 0.001).onChange(guiChanged)
-  // gui.add(options, 'mieDirectionalG', 0.0, 1, 0.001).onChange(guiChanged)
-  // gui.add(options, 'luminance', 0.0, 2).onChange(guiChanged)
-  // gui.add(options, 'inclination', 0, 1, 0.0001).onChange(guiChanged)
-  // gui.add(options, 'azimuth', 0, 1, 0.0001).onChange(guiChanged)
-  gui.add(options, 'sky').onChange(guiChanged)
-  gui.add(options, 'plot').onChange(guiChanged)
-  // gui.add(options, 'reset').onChange(guiChanged)
+  gui.add(options, 'sky').listen().onChange(guiChanged)
+  gui.add(options, 'plot').listen().onChange(guiChanged)
+
+  gui.add(options, 'preset', options.presets).listen().onChange(guiPresetChanged)
 
   for (let name of points.names) {
     let point = gui.addFolder(`Point ${name}`)
 
     for (let coordinate of points.coordinates) {
-      point.add(options, name + coordinate, -10, 10).step(0.001).onChange(guiChanged)
+      point
+        .add(options, name + coordinate, -10, 10)
+        .step(0.001)
+        .listen()
+        .onFinishChange(guiPointChanged)
     }
   }
 }
@@ -186,8 +229,12 @@ function init () {
   initPoints()
   initSky()
   initDatGui()
+  initSolution()
+
+  solver = new Solver()
 
   guiChanged()
+  guiPointChanged()
 
   window.addEventListener('resize', onWindowResize, false)
   document.addEventListener('keydown', onKeyDown, false)
@@ -200,35 +247,22 @@ function onWindowResize (e) {
 }
 //
 function onKeyDown (event) {
-//   switch (event.keyCode) {
-//     case 83: // key 's'
-//       options.sky = !options.sky
-//       guiChanged()
-//       // sky.visible = !sky.visible
-//       break
-//
-//     case 80: // key 'p'
-//       options.plot = !options.initPlot
-//       guiChanged()
-//       // plot.visible = !plot.visible
-//       break
-//
-//     default:
-//       console.log(`keyCode = ${event.keyCode}`)
-//           //
-// 					// case 72: // h
-//           //
-// 					// hemiLight.visible = !hemiLight.visible;
-// 					// hemiLightHelper.visible = !hemiLightHelper.visible;
-// 					// break;
-//           //
-// 					// case 68: // d
-//           //
-// 					// dirLight.visible = !dirLight.visible;
-// 					// dirLightHeper.visible = !dirLightHeper.visible;
-// 					// break;
-//
-//   }
+  switch (event.keyCode) {
+    case 83: // key 's'
+      options.sky = !options.sky
+      guiChanged()
+      // sky.visible = !sky.visible
+      break
+
+    case 80: // key 'p'
+      options.plot = !options.plot
+      guiChanged()
+      // plot.visible = !plot.visible
+      break
+
+    default:
+      console.log(`keyCode = ${event.keyCode}`)
+  }
 }
 
 function render () {

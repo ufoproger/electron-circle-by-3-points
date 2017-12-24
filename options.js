@@ -10,7 +10,15 @@ let options = {
   inclination: 0.49, // elevation / inclination
   azimuth: 0.25, // Facing front,
 
+  preset: '',
+
+  presets: {
+    InLine: '0,0,0,0.1,0,0,-0.1,0,0',
+    First: '1,0,0,0,0,0,0,0,1'
+  },
+
   sky: !true,
+  skyScale: 40,
 
   // Camera frustum near plane
   cameraNear: 0.01,
