@@ -1,4 +1,5 @@
 /* global THREE */
+/* global options */
 
 class Solver {
   constructor () {
@@ -25,18 +26,36 @@ class Solver {
     return (v.lengthSq() > Number.EPSILON)
   }
 
+  static line (l) {
+    return l
+  }
+
+  static lineMiddlePerpendicular (line, normal) {
+    let center = line.getCenter()
+    let delta = line.delta().cross(normal)
+
+    let result = new THREE.Line3()
+
+    result.start.subVectors(center, delta)
+    result.end.addVectors(center, delta)
+
+    return result
+  }
+
   get status () {
     return this._status
   }
 
   get plane () {
-    let plane = new THREE.Plane(
+    let plane = new THREE.Plane()
+
+    plane.setFromCoplanarPoints(
       this._current.a,
       this._current.b,
       this._current.c
     )
 
-    return plane.copy()
+    return plane
   }
 
   get line1 () {
@@ -45,16 +64,31 @@ class Solver {
       this._current.b
     )
 
-    return line
+    return Solver.line(line)
   }
 
   get line2 () {
+    let l = Solver.lineMiddlePerpendicular(this.line1, this.plane.normal)
+
+    console.log(l)
+
+    return l
+
     let line = new THREE.Line3(
       this._current.b,
       this._current.c
     )
 
-    return line;
+    return Solver.line(line)
+  }
+
+  // Серединный перпендикул line1
+  get line3 () {
+
+  }
+
+  get isOk () {
+    return (this.status === Solver.STATUSES.ok)
   }
 
   clear () {
@@ -71,6 +105,8 @@ class Solver {
       console.log('Collinear')
       return false
     }
+
+    this._status = Solver.STATUSES.ok
   }
 }
 

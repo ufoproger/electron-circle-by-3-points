@@ -52,6 +52,12 @@ function guiChanged () {
   sky.visible = options.sky
   plot.visible = options.plot
 
+  if (options.drawing) {
+    solution.group.visible = solver.isOk
+  } else {
+    solution.group.visible = false
+  }
+
   renderer.render(scene, camera)
 }
 
@@ -74,28 +80,60 @@ function initSolution () {
   solution.group = new THREE.Group()
 
   solution.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1)
-  solution.planeHelper = new THREE.PlaneHelper(solution.plane, 1, 0xffff00)
+  solution.planeHelper = new THREE.PlaneHelper(solution.plane, 1, 0x44ff00)
   solution.group.add(solution.planeHelper)
+
+  for (const line of ['line1', 'line2']) {
+    let material = new THREE.LineBasicMaterial({
+      color: options[line + 'Color'],
+      linewidth: options.linesWidth
+    })
+
+    let geometry = new THREE.Geometry()
+
+    geometry.vertices.push(new THREE.Vector3())
+    geometry.vertices.push(new THREE.Vector3())
+
+    solution[line] = new THREE.Line(geometry, material)
+
+    solution.group.add(solution[line])
+  }
 
   scene.add(solution.group)
 }
 
 function solve () {
   solver.run(points.objects[0].position, points.objects[1].position, points.objects[2].position)
+
+  solution.group.visible = (solver.isOk && options.drawing)
+
+  if (solver.isOk) {
+    for (const line of ['line1', 'line2']) {
+      solution[line].geometry.vertices[0].copy(solver[line].start)
+      solution[line].geometry.vertices[1].copy(solver[line].end)
+      solution[line].geometry.verticesNeedUpdate = true
+    }
+
+    // solution.plane.copy(solver.plane)
+    // solution.planeHelper.plane.updateMatrixWorld(true)
+    solution.planeHelper.plane.copy(solver.plane)
+  } else {
+
+  }
 }
 
 function guiPresetChanged () {
   let values = options.preset.split(',')
 
-  options.Ax = values[0]
-  options.Ay = values[1]
-  options.Az = values[2]
-  options.Bx = values[3]
-  options.By = values[4]
-  options.Bz = values[5]
-  options.Cx = values[6]
-  options.Cy = values[7]
-  options.Cz = values[8]
+  options.Ax = parseFloat(values[0])
+  options.Ay = parseFloat(values[1])
+  options.Az = parseFloat(values[2])
+  options.Bx = parseFloat(values[3])
+  options.By = parseFloat(values[4])
+  options.Bz = parseFloat(values[5])
+  options.Cx = parseFloat(values[6])
+  options.Cy = parseFloat(values[7])
+  options.Cz = parseFloat(values[8])
 
   guiPointChanged(false)
 }
@@ -105,6 +143,7 @@ function initDatGui () {
 
   gui.add(options, 'sky').listen().onChange(guiChanged)
   gui.add(options, 'plot').listen().onChange(guiChanged)
+  gui.add(options, 'drawing').listen().onChange(guiChanged)
 
   gui.add(options, 'preset', options.presets).listen().onChange(guiPresetChanged)
 
@@ -119,23 +158,6 @@ function initDatGui () {
         .onFinishChange(guiPointChanged)
     }
   }
-}
-
-function addLine () {
-  let material = new THREE.LineBasicMaterial({
-    color: 0x0000ff,
-    linewidth: 3
-  })
-
-  let geometry = new THREE.Geometry()
-
-  geometry.vertices.push(new THREE.Vector3(-0.2, 0, 0))
-  geometry.vertices.push(new THREE.Vector3(0, 0.5, 0))
-  geometry.vertices.push(new THREE.Vector3(0.4, 0, 0))
-
-  let line = new THREE.Line(geometry, material)
-
-  scene.add(line)
 }
 
 init()
@@ -187,21 +209,6 @@ function initPoints () {
   }
 }
 
-function initLights () {
-  var lights = []
-  lights[ 0 ] = new THREE.PointLight(0xffffff, 1, 0)
-  lights[ 1 ] = new THREE.PointLight(0xffffff, 1, 0)
-  lights[ 2 ] = new THREE.PointLight(0xffffff, 1, 0)
-
-  lights[ 0 ].position.set(0, 5, 0)
-  lights[ 1 ].position.set(2, 5, 2)
-  lights[ 2 ].position.set(-2, -5, -2)
-
-  scene.add(lights[ 0 ])
-  scene.add(lights[ 1 ])
-  scene.add(lights[ 2 ])
-}
-
 function init () {
   renderer = new THREE.WebGLRenderer({antialias: true})
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -217,7 +224,11 @@ function init () {
     options.cameraFar
   )
 
-  camera.position.set(1, 0.5, 0.5)
+  camera.position.set(
+    options.cameraPosition.x,
+    options.cameraPosition.y,
+    options.cameraPosition.z
+  )
 
   scene = new THREE.Scene()
 
@@ -248,6 +259,11 @@ function onWindowResize (e) {
 //
 function onKeyDown (event) {
   switch (event.keyCode) {
+    case 68: // key 'd'
+      options.drawing = !options.drawing
+      guiChanged()
+      break
+
     case 83: // key 's'
       options.sky = !options.sky
       guiChanged()

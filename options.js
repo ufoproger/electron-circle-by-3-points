@@ -17,8 +17,20 @@ let options = {
     First: '1,0,0,0,0,0,0,0,1'
   },
 
-  sky: !true,
+  sky: true,
   skyScale: 40,
+
+  // cameraPosition: {
+  //   x: 0.9494695250202605,
+  //   y: 0.5510547620127447,
+  //   z: 0.5429974864774902
+  // },
+
+  cameraPosition: {
+    x: 0.9468279641211484,
+    y: 0.6555164882419569,
+    z: 0.41691118958494094
+  },
 
   // Camera frustum near plane
   cameraNear: 0.01,
@@ -33,8 +45,16 @@ let options = {
     * Настройки визуализации задачи
     */
 
+  drawing: true,
+
   // Радиус точек исходных
   pointsRadius: 0.01,
+
+  // Увеличение длины прямых
+  linesEnlargeLength: 0.1,
+  linesWidth: 4,
+  line1Color: 0xbbbbbb,
+  line2Color: 0x00bba0,
 
   /**
     * Настройки графика: оси координат, координатная сетка
@@ -67,14 +87,14 @@ let options = {
   },
 
   Ax: 0.4,
-  Ay: 0,
-  Az: 0,
+  Ay: 0.1,
+  Az: 0.1,
 
   Bx: -0.4,
-  By: 0,
-  Bz: 0,
+  By: 0.1,
+  Bz: 0.1,
 
-  Cx: 0,
+  Cx: 0.1,
   Cy: 0.4,
-  Cz: 0
+  Cz: 0.1
 }
