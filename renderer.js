@@ -28,7 +28,6 @@ function initSky () {
   sunSphere.position.y = -10
   sunSphere.visible = false
   scene.add(sunSphere)
-  console.log(options)
 }
 
 function guiChanged () {
@@ -78,16 +77,28 @@ function guiPointChanged (resetPreset = true) {
 
 function initSolution () {
   solution.group = new THREE.Group()
+  solution.answer = new THREE.Group()
 
   solution.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1)
   solution.planeHelper = new THREE.PlaneHelper(solution.plane, 1, 0x44ff00)
   solution.group.add(solution.planeHelper)
 
-  for (const line of ['line1', 'line2']) {
-    let material = new THREE.LineBasicMaterial({
-      color: options[line + 'Color'],
-      linewidth: options.linesWidth
-    })
+  for (const line of ['line1', 'line2', 'line3', 'line4']) {
+    let material
+
+    if (line === 'line3' || line === 'line4') {
+      material = new THREE.LineDashedMaterial({
+        color: 0xffff22,
+        linewidth: options.linesWidth - 1,
+        dashSize: 0.1,
+        gapSize: 1
+      })
+    } else {
+      material = new THREE.LineBasicMaterial({
+        color: options[line + 'Color'],
+        linewidth: options.linesWidth
+      })
+    }
 
     let geometry = new THREE.Geometry()
 
@@ -99,24 +110,48 @@ function initSolution () {
     solution.group.add(solution[line])
   }
 
+  {
+    let geometry = new THREE.SphereGeometry(options.pointsRadius, 32, 32)
+    let material = new THREE.MeshBasicMaterial({color: 0xffff00})
+
+    solution.center = new THREE.Mesh(geometry, material)
+    solution.answer.add(solution.center)
+  }
+
+  {
+    // let geometry = new THREE.RingBufferGeometry(1, 5, 32)
+    // let material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide })
+    let geometry = new THREE.TorusBufferGeometry(1, options.circleWidth, 16, 100)
+    let material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+
+    solution.circle = new THREE.Mesh(geometry, material)
+
+    solution.answer.add(solution.circle)
+  }
+
   scene.add(solution.group)
+  scene.add(solution.answer)
 }
 
 function solve () {
   solver.run(points.objects[0].position, points.objects[1].position, points.objects[2].position)
 
   solution.group.visible = (solver.isOk && options.drawing)
+  solution.answer.visible = solver.isOk
 
   if (solver.isOk) {
-    for (const line of ['line1', 'line2']) {
+    for (const line of ['line1', 'line2', 'line3', 'line4']) {
       solution[line].geometry.vertices[0].copy(solver[line].start)
       solution[line].geometry.vertices[1].copy(solver[line].end)
       solution[line].geometry.verticesNeedUpdate = true
     }
 
-    // solution.plane.copy(solver.plane)
-    // solution.planeHelper.plane.updateMatrixWorld(true)
-    solution.planeHelper.plane.copy(solver.plane)
+    solution.planeHelper.plane.copy(solver.plane2)
+    solution.center.position.copy(solver.center)
+    // solution.circle.geometry.innerRadius = 0.2
+    // solution.circle.geometry.outerRadius = solution.circle.innerRadius + options.circleWidth
+    solution.circle.position.copy(solver.center)
+    solution.circle.lookAt(solver.plane.normal)
   } else {
 
   }

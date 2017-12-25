@@ -55,6 +55,7 @@ let options = {
   linesWidth: 4,
   line1Color: 0xbbbbbb,
   line2Color: 0x00bba0,
+  circleWidth: 0.005,
 
   /**
     * Настройки графика: оси координат, координатная сетка
@@ -96,5 +97,5 @@ let options = {
 
   Cx: 0.1,
   Cy: 0.4,
-  Cz: 0.1
+  Cz: -0.646
 }
