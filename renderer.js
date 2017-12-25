@@ -12,7 +12,8 @@ let stats
 let points = {
   names: ['A', 'B', 'C'],
   coordinates: ['x', 'y', 'z'],
-  objects: []
+  objects: [],
+  labels: []
 }
 
 function initSky () {
@@ -48,6 +49,8 @@ function guiChanged () {
   sunSphere.position.z = distance * Math.sin(phi) * Math.cos(theta)
   uniforms.sunPosition.value.copy(sunSphere.position)
 
+  solution.centerLabel.visible = options.label
+  points.label.visible = options.label
   sky.visible = options.sky
   plot.visible = options.plot
 
@@ -65,6 +68,8 @@ function guiPointChanged (resetPreset = true) {
     for (const coordinate of points.coordinates) {
       points.objects[index].position[coordinate] = options[name + coordinate]
     }
+
+    points.labels[index].position.addVectors(points.objects[index].position, new THREE.Vector3(0, options.textSize * 0.5, 0))
   }
 
   if (resetPreset) {
@@ -81,24 +86,13 @@ function initSolution () {
 
   solution.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1)
   solution.planeHelper = new THREE.PlaneHelper(solution.plane, 1, 0x44ff00)
-  solution.group.add(solution.planeHelper)
+  // solution.group.add(solution.planeHelper)
 
   for (const line of ['line1', 'line2', 'line3', 'line4']) {
-    let material
-
-    if (line === 'line3' || line === 'line4') {
-      material = new THREE.LineDashedMaterial({
-        color: 0xffff22,
-        linewidth: options.linesWidth - 1,
-        dashSize: 0.1,
-        gapSize: 1
-      })
-    } else {
-      material = new THREE.LineBasicMaterial({
-        color: options[line + 'Color'],
-        linewidth: options.linesWidth
-      })
-    }
+    let material = new THREE.LineBasicMaterial({
+      color: options[line + 'Color'],
+      linewidth: options.linesWidth
+    })
 
     let geometry = new THREE.Geometry()
 
@@ -112,21 +106,21 @@ function initSolution () {
 
   {
     let geometry = new THREE.SphereGeometry(options.pointsRadius, 32, 32)
-    let material = new THREE.MeshBasicMaterial({color: 0xffff00})
+    let material = new THREE.MeshToonMaterial({color: options.centerColor})
 
     solution.center = new THREE.Mesh(geometry, material)
     solution.answer.add(solution.center)
   }
 
   {
-    // let geometry = new THREE.RingBufferGeometry(1, 5, 32)
-    // let material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide })
     let geometry = new THREE.TorusBufferGeometry(1, options.circleWidth, 16, 100)
-    let material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+    let material = new THREE.MeshToonMaterial({ color: options.circleColor })
 
     solution.circle = new THREE.Mesh(geometry, material)
-
     solution.answer.add(solution.circle)
+
+    solution.centerLabel = createSprite('O')
+    solution.answer.add(solution.centerLabel)
   }
 
   scene.add(solution.group)
@@ -135,6 +129,12 @@ function initSolution () {
 
 function solve () {
   solver.run(points.objects[0].position, points.objects[1].position, points.objects[2].position)
+
+  console.log(solver.status)
+
+  if (solver.isOk) {
+    console.log('Найден центр окружности в точке (' + solver.center.toArray() + '), радиус ' + solver.radius)
+  }
 
   solution.group.visible = (solver.isOk && options.drawing)
   solution.answer.visible = solver.isOk
@@ -146,12 +146,16 @@ function solve () {
       solution[line].geometry.verticesNeedUpdate = true
     }
 
-    solution.planeHelper.plane.copy(solver.plane2)
+    solution.planeHelper.plane.copy(solver.plane)
     solution.center.position.copy(solver.center)
-    // solution.circle.geometry.innerRadius = 0.2
-    // solution.circle.geometry.outerRadius = solution.circle.innerRadius + options.circleWidth
     solution.circle.position.copy(solver.center)
-    solution.circle.lookAt(solver.plane.normal)
+
+    let look = new THREE.Vector3()
+
+    solution.circle.geometry = new THREE.TorusBufferGeometry(solver.radius, options.circleWidth, 16, 100)
+    solution.circle.lookAt(look.addVectors(solver.center, solver.plane.normal))
+
+    solution.centerLabel.position.addVectors(solution.center.position, new THREE.Vector3(0, options.textSize * 0.5, 0))
   } else {
 
   }
@@ -179,6 +183,7 @@ function initDatGui () {
   gui.add(options, 'sky').listen().onChange(guiChanged)
   gui.add(options, 'plot').listen().onChange(guiChanged)
   gui.add(options, 'drawing').listen().onChange(guiChanged)
+  gui.add(options, 'label').listen().onChange(guiChanged)
 
   gui.add(options, 'preset', options.presets).listen().onChange(guiPresetChanged)
 
@@ -187,16 +192,13 @@ function initDatGui () {
 
     for (let coordinate of points.coordinates) {
       point
-        .add(options, name + coordinate, -10, 10)
-        .step(0.001)
+        .add(options, name + coordinate, -options.plotSize * 0.5, options.plotSize * 0.5)
+        .step(0.01)
         .listen()
-        .onFinishChange(guiPointChanged)
+        .onChange(guiPointChanged)
     }
   }
 }
-
-init()
-render()
 
 function initPlot () {
   plot = new THREE.Group()
@@ -221,6 +223,12 @@ function initPlot () {
 
     arrow.line.material.linewidth = options.axisWidth
     plot.add(arrow)
+    plot.add(
+      createSprite(
+        axis,
+        dir.multiplyScalar(options.axisLength + options.textSize * 0.5)
+      )
+    )
   }
 
   plot.add(
@@ -234,14 +242,56 @@ function initPlot () {
 }
 
 function initPoints () {
+  points.label = new THREE.Group()
+
   for (const name of points.names) {
     let geometry = new THREE.SphereGeometry(options.pointsRadius, 32, 32)
-    let material = new THREE.MeshBasicMaterial({color: 0xffff00})
+    let material = new THREE.MeshToonMaterial({color: options.pointsColor})
     let sphere = new THREE.Mesh(geometry, material)
 
     points.objects.push(sphere)
     scene.add(sphere)
+
+    let sprite = createSprite(name)
+    points.labels.push(sprite)
+    points.label.add(sprite)
   }
+
+  scene.add(points.label)
+}
+
+function initLights () {
+  scene.add(new THREE.AmbientLight(0xf0f0f0))
+
+  let light = new THREE.SpotLight(0xffffff, 1.5)
+
+  light.position.set(0, 1500, 200)
+  light.castShadow = true
+  light.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(70, 1, 200, 2000))
+  light.shadow.bias = -0.000222
+  light.shadow.mapSize.width = 1024
+  light.shadow.mapSize.height = 1024
+
+  scene.add(light)
+}
+
+function createSprite (text, position) {
+  let sprite = new THREE.TextSprite({
+    textSize: options.textSize,
+    texture: {
+      text,
+      fontWeight: 'bold',
+      fontFamily: 'Arial, Helvetica, sans-serif'
+    },
+    material: {
+      color: options.textColor
+    }
+  })
+
+  position = position || new THREE.Vector3()
+
+  sprite.position.copy(position)
+  return sprite
 }
 
 function init () {
@@ -274,6 +324,7 @@ function init () {
   initPlot()
   initPoints()
   initSky()
+  initLights()
   initDatGui()
   initSolution()
 
@@ -299,20 +350,23 @@ function onKeyDown (event) {
       guiChanged()
       break
 
+    case 76: // key 'l'
+      options.label = !options.label
+      guiChanged()
+      break
+
     case 83: // key 's'
       options.sky = !options.sky
       guiChanged()
-      // sky.visible = !sky.visible
       break
 
     case 80: // key 'p'
       options.plot = !options.plot
       guiChanged()
-      // plot.visible = !plot.visible
       break
 
-    default:
-      console.log(`keyCode = ${event.keyCode}`)
+    // default:
+    //   console.log(`keyCode = ${event.keyCode}`)
   }
 }
 
@@ -322,3 +376,6 @@ function render () {
   stats.update()
   renderer.render(scene, camera)
 }
+
+init()
+render()

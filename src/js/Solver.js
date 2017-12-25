@@ -9,10 +9,14 @@ class Solver {
     this.clear()
   }
 
+  static get EPSILON () {
+    return 1e-5
+  }
+
   static get STATUSES () {
     return {
       none: 'Задача ещё не решалась',
-      collinear: 'Точка расположены на одной прямой',
+      collinear: 'Точки расположены на одной прямой',
       ok: 'Окружность построена',
       noCenter: 'Не удалось найти центр окружности',
       badCenter: 'Расстояния от центра окружности до точек на ней не совпадают'
@@ -24,11 +28,22 @@ class Solver {
     let v2 = new THREE.Vector3()
     let v = v1.subVectors(c, b).cross(v2.subVectors(a, b))
 
-    return (v.lengthSq() > Number.EPSILON)
+    return (v.lengthSq() > Solver.EPSILON)
   }
 
   static line (l) {
-    return l
+    return Solver.lineEnlarge(l, options.plotSize)
+  }
+
+  static lineEnlarge (line, length) {
+    let delta = line.delta().normalize().multiplyScalar(length)
+    let result = new THREE.Line3()
+
+    result.copy(line)
+    result.start.add(delta)
+    result.end.sub(delta)
+
+    return result
   }
 
   static lineMiddlePerpendicular (line, normal) {
@@ -120,8 +135,6 @@ class Solver {
     // Проверка точек на то, можно и из них попытаться слепить окружность
     if (!Solver.testPoints(a, b, c)) {
       this._status = Solver.STATUSES.collinear
-
-      console.log('Collinear')
       return false
     }
 
@@ -132,9 +145,9 @@ class Solver {
       return false
     }
 
-    if (Math.abs(center.distanceToSquared(a) - center.distanceToSquared(b)) > Number.EPSILON ||
-      Math.abs(center.distanceToSquared(a) - center.distanceToSquared(c)) > Number.EPSILON ||
-      Math.abs(center.distanceToSquared(b) - center.distanceToSquared(c)) > Number.EPSILON
+    if (Math.abs(center.distanceToSquared(a) - center.distanceToSquared(b)) > Solver.EPSILON ||
+      Math.abs(center.distanceToSquared(a) - center.distanceToSquared(c)) > Solver.EPSILON ||
+      Math.abs(center.distanceToSquared(b) - center.distanceToSquared(c)) > Solver.EPSILON
     ) {
       this._status = Solver.STATUSES.badCenter
       return false

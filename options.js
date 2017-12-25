@@ -1,5 +1,7 @@
 /* eslint no-unused-vars: "off" */
 
+// https://www.canva.com/learn/100-color-combinations/
+
 let options = {
 
   turbidity: 10,
@@ -10,11 +12,13 @@ let options = {
   inclination: 0.49, // elevation / inclination
   azimuth: 0.25, // Facing front,
 
+  label: true,
+
   preset: '',
 
   presets: {
     InLine: '0,0,0,0.1,0,0,-0.1,0,0',
-    First: '1,0,0,0,0,0,0,0,1'
+    Other: '1,0,0,0,0,0,0,0,1'
   },
 
   sky: true,
@@ -25,6 +29,9 @@ let options = {
   //   y: 0.5510547620127447,
   //   z: 0.5429974864774902
   // },
+
+  textSize: 0.1,
+  textColor: 0xffffff,
 
   cameraPosition: {
     x: 0.9468279641211484,
@@ -49,13 +56,18 @@ let options = {
 
   // Радиус точек исходных
   pointsRadius: 0.01,
+  pointsColor: 0xffff00,
 
   // Увеличение длины прямых
   linesEnlargeLength: 0.1,
   linesWidth: 4,
-  line1Color: 0xbbbbbb,
-  line2Color: 0x00bba0,
+  line1Color: 0x217ca3,
+  line3Color: 0x217ca3,
+  line2Color: 0xfaaf08,
+  line4Color: 0xfaaf08,
+  centerColor: 0xf34a4a,
   circleWidth: 0.005,
+  circleColor: 0xf34a4a,
 
   /**
     * Настройки графика: оси координат, координатная сетка
@@ -82,10 +94,6 @@ let options = {
 
   // Длина оси координат
   axisLength: 2,
-
-  reset: function () {
-    console.log('reset')
-  },
 
   Ax: 0.4,
   Ay: 0.1,

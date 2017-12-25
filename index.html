@@ -2,27 +2,35 @@
 <html>
   <head>
     <meta charset=utf-8>
-    <title>My first three.js app</title>
+    <title>Нахождение окружности по 3-м точкам</title>
     <style>
-      body { margin: 0; }
-      canvas { width: 100%; height: 100% }
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      
+      canvas {
+        width: 100%; height: 100%
+      }
     </style>
   </head>
   <body>
     <script src="./node_modules/three/build/three.min.js"></script>
+
     <!-- https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_orbit.html -->
     <script src="./src/js/controls/OrbitControls.js"></script>
 
     <!-- https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html -->
     <script src="./src/js/objects/Sky.js"></script>
 
+    <script src="./node_modules/three.texttexture/THREE.TextTexture.js"></script>
+    <script src="./node_modules/three.textsprite/THREE.TextSprite.js"></script>
+
     <script src="./node_modules/dat.gui/build/dat.gui.min.js"></script>
     <script src="./node_modules/stats.js/build/stats.min.js"></script>
 
-    <script src="./src/js/math/Line3.js"></script>
-    <script src="./src/js/Solver.js"></script>
-
     <script src="./options.js"></script>
+    <script src="./src/js/Solver.js"></script>
     <script src="./renderer.js"></script>
   </body>
 </html>
