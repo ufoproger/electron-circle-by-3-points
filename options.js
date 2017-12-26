@@ -62,7 +62,7 @@ let options = {
 
   // Увеличение длины прямых
   linesEnlargeLength: 0.1,
-  linesWidth: 4,
+  linesWidth: 6, // 4
   line1Color: 0x217ca3,
   line3Color: 0x217ca3,
   line2Color: 0xfaaf08,
@@ -92,7 +92,7 @@ let options = {
   },
 
   // Ширина оси координат
-  axisWidth: 3,
+  axisWidth: 4,
 
   // Длина оси координат
   axisLength: 2,
