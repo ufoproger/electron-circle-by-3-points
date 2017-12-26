@@ -125,15 +125,36 @@ function initSolution () {
 
   scene.add(solution.group)
   scene.add(solution.answer)
+
+  solution.info = document.createElement('div')
+  solution.info.className = 'info'
+
+  document.body.appendChild(solution.info)
+}
+
+function formatPoint (name, point) {
+  let x = point.x.toPrecision(options.precision)
+  let y = point.y.toPrecision(options.precision)
+  let z = point.z.toPrecision(options.precision)
+
+  return `${name} (${x}, ${y}, ${z})`
 }
 
 function solve () {
   solver.run(points.objects[0].position, points.objects[1].position, points.objects[2].position)
 
-  console.log(solver.status)
+  solution.info.innerHTML = solver.status + '<br/>'
+
+  for (const [index, name] of Object.entries(points.names)) {
+    solution.info.innerHTML += '<br/>' +
+      formatPoint(name, points.objects[index].position)
+  }
 
   if (solver.isOk) {
-    console.log('Найден центр окружности в точке (' + solver.center.toArray() + '), радиус ' + solver.radius)
+    solution.info.innerHTML += '<br/><br/>' +
+      formatPoint('O', solver.center) +
+      '<br/>' +
+      'Радиус окружности: ' + solver.radius.toPrecision(options.precision)
   }
 
   solution.group.visible = (solver.isOk && options.drawing)
@@ -141,8 +162,8 @@ function solve () {
 
   if (solver.isOk) {
     for (const line of ['line1', 'line2', 'line3', 'line4']) {
-      solution[line].geometry.vertices[0].copy(solver[line].start)
-      solution[line].geometry.vertices[1].copy(solver[line].end)
+      solution[line].geometry.vertices[0].copy(solver.nice(line).start)
+      solution[line].geometry.vertices[1].copy(solver.nice(line).end)
       solution[line].geometry.verticesNeedUpdate = true
     }
 
@@ -265,7 +286,7 @@ function initLights () {
 
   let light = new THREE.SpotLight(0xffffff, 1.5)
 
-  light.position.set(0, 1500, 200)
+  light.position.set(0, 150, 20)
   light.castShadow = true
   light.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(70, 1, 200, 2000))
   light.shadow.bias = -0.000222
@@ -342,7 +363,7 @@ function onWindowResize (e) {
   camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth, window.innerHeight)
 }
-//
+
 function onKeyDown (event) {
   switch (event.keyCode) {
     case 68: // key 'd'
@@ -364,9 +385,6 @@ function onKeyDown (event) {
       options.plot = !options.plot
       guiChanged()
       break
-
-    // default:
-    //   console.log(`keyCode = ${event.keyCode}`)
   }
 }
 

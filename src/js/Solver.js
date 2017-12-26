@@ -35,13 +35,17 @@ class Solver {
     return Solver.lineEnlarge(l, options.plotSize)
   }
 
+  static niceLine (l) {
+    return Solver.lineEnlarge(l, options.linesEnlargeLength)
+  }
+
   static lineEnlarge (line, length) {
     let delta = line.delta().normalize().multiplyScalar(length)
     let result = new THREE.Line3()
 
     result.copy(line)
-    result.start.add(delta)
-    result.end.sub(delta)
+    result.start.sub(delta)
+    result.end.add(delta)
 
     return result
   }
@@ -59,6 +63,10 @@ class Solver {
 
   get status () {
     return this._status
+  }
+
+  get isOk () {
+    return (this.status === Solver.STATUSES.ok)
   }
 
   get plane () {
@@ -86,14 +94,6 @@ class Solver {
     return plane
   }
 
-  get center () {
-    return this.plane2.intersectLine(this.line4)
-  }
-
-  get radius () {
-    return this.center.distanceTo(this._current.a)
-  }
-
   get line1 () {
     let line = new THREE.Line3(
       this._current.a,
@@ -112,17 +112,65 @@ class Solver {
     return Solver.line(line)
   }
 
-  // Серединный перпендикул line1
+  // Серединный перпендикуляр line1
   get line3 () {
     return Solver.lineMiddlePerpendicular(this.line1, this.plane.normal)
   }
 
+  // Серединный перпендикул line2
   get line4 () {
     return Solver.lineMiddlePerpendicular(this.line2, this.plane.normal)
   }
 
-  get isOk () {
-    return (this.status === Solver.STATUSES.ok)
+  get center () {
+    return this.plane2.intersectLine(this.line4)
+  }
+
+  get radius () {
+    return this.center.distanceTo(this._current.a)
+  }
+
+  nice (name) {
+    let self = this
+    let {a, b, c, center, radius} = this._current
+
+    let attributes = {
+      line1: function () {
+        return new THREE.Line3(a, b)
+      },
+
+      line2: function () {
+        return new THREE.Line3(b, c)
+      },
+
+      line3: function () {
+        let line = new THREE.Line3(
+          center,
+          self.line1.getCenter()
+        )
+
+        let r = line.delta().normalize().multiplyScalar(radius)
+
+        line.end.addVectors(center, r)
+
+        return line
+      },
+
+      line4: function () {
+        let line = new THREE.Line3(
+          center,
+          self.line2.getCenter()
+        )
+
+        let r = line.delta().normalize().multiplyScalar(radius)
+
+        line.end.addVectors(center, r)
+
+        return line
+      }
+    }
+
+    return Solver.niceLine(attributes[name]())
   }
 
   clear () {
@@ -154,6 +202,9 @@ class Solver {
     }
 
     this._status = Solver.STATUSES.ok
+    this._current.center = center
+    this._current.radius = this.radius
+
     return true
   }
 }

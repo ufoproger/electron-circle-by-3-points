@@ -14,6 +14,8 @@ let options = {
 
   label: true,
 
+  precision: 2,
+
   preset: '',
 
   presets: {
