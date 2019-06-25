@@ -12,7 +12,7 @@
   ],
   "author": "GitHub",
   "devDependencies": {
-    "electron": "^1.8.2"
+    "electron": "^1.8.8"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
