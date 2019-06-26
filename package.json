@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "docs": "grunt docs"
   },
   "repository": "https://github.com/ufoproger/electron-circle-by-3-points",
   "keywords": [
@@ -12,7 +13,13 @@
   ],
   "author": "GitHub",
   "devDependencies": {
-    "electron": "^1.8.8"
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "electron": "^1.8.8",
+    "grunt": "^1.0.4",
+    "grunt-babel": "^8.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-processhtml": "^0.4.2"
   },
   "dependencies": {
     "stats.js": "^0.17.0",

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset=utf-8>
+    <meta charset="utf-8">
     <title>Нахождение окружности по 3-м точкам</title>
     <style>
       body {
@@ -24,24 +24,24 @@
     </style>
   </head>
   <body>
+  	<!-- build:js dist/libs.js -->
     <script src="./node_modules/three/build/three.min.js"></script>
-
-    <!-- https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_orbit.html -->
     <script src="./src/js/controls/OrbitControls.js"></script>
-
-    <!-- https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html -->
     <script src="./src/js/objects/Sky.js"></script>
-
     <script src="./node_modules/three.texttexture/THREE.TextTexture.js"></script>
     <script src="./node_modules/three.textsprite/THREE.TextSprite.js"></script>
-
-    <!-- <script src="./node_modules/dat.gui/build/dat.gui.min.js"></script> -->
     <script src="./src/libs/dat.gui/dat.gui.min.js"></script>
-
     <script src="./node_modules/stats.js/build/stats.min.js"></script>
+    <!-- /build -->
 
+  	<!-- build:js dist/options.js -->
     <script src="./options.js"></script>
+    <!-- /build -->
+  	<!-- build:js dist/solver.js -->
     <script src="./src/js/Solver.js"></script>
+    <!-- /build -->
+  	<!-- build:js dist/renderer.js -->
     <script src="./renderer.js"></script>
+    <!-- /build -->
   </body>
 </html>
