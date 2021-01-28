@@ -15,7 +15,7 @@
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
-    "electron": "^1.8.8",
+    "electron": "^9.4.0",
     "grunt": "^1.0.4",
     "grunt-babel": "^8.0.0",
     "grunt-contrib-concat": "^1.0.1",
