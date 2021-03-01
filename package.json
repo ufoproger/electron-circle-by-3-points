@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "stats.js": "^0.17.0",
-    "three": "^0.89.0",
+    "three": "^0.125.0",
     "three.textsprite": "^17.11.23"
   }
 }
